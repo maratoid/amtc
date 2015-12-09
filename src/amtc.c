@@ -256,10 +256,6 @@ int main(int argc,char **argv,char **envp) {
     }
   }
 
-  printf("cmd : %i\n", cmd);
-  printf("useWsmanShift : %i\n", useWsmanShift);
-  printf("cfgcmd : %i\n", cfgcmd);
-
   get_amt_pw();
 
   if (cmd==CMD_TERMINAL) {
