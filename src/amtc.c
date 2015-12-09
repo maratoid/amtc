@@ -43,6 +43,9 @@
 #define CMD_ENUMERATE  7
 #define CMD_MODIFY     8
 #define CMD_TERMINAL   9
+#define CMD_PXEBOOT    10
+#define CMD_HDDBOOT    11
+#define CMD_BOOTCONFIG 12
 #define MAX_HOSTS      255
 #define PORT_SSH       22
 #define PORT_RDP       3389
@@ -55,19 +58,21 @@
 
 unsigned char *acmds[] = {
   /* SOAP/XML request bodies as included via amt.h, AMT6-8 */
-  cmd_info,cmd_powerup,cmd_powerdown,cmd_powerreset,cmd_powercycle,
+  cmd_info, cmd_powerup, cmd_powerdown, cmd_powerreset, cmd_powercycle,
   /* WS-MAN / DASH / AMT6-9+ versions */
-  wsman_info, wsman_up,wsman_down,wsman_reset,wsman_reset,
+  wsman_info, wsman_up, wsman_down, wsman_reset, wsman_reset,
   /* generic wsman enumerations using -E <classname> */
   wsman_shutdown_graceful, wsman_reset_graceful, wsman_xenum,
   /* AMT config settings via wsman -- cfgcmd 0..5  */
   wsman_solredir_disable, wsman_solredir_enable,
   wsman_webui_disable, wsman_webui_enable,
-  wsman_ping_disable, wsman_ping_enable
+  wsman_ping_disable, wsman_ping_enable,
+  // HAXX ! 
+  wsman_pxeboot, wsman_hddboot, wsman_bootconfig
 };
 const char *hcmds[] = {
   "INFO","POWERUP","POWERDOWN","POWERRESET","POWERCYCLE",
-  "SHUTDOWN","REBOOT","ENUMERATE","MODIFY"
+  "SHUTDOWN","REBOOT","ENUMERATE","MODIFY", "FIXME", "PXEBOOT", "HDDBOOT", "BOOTCONFIG"
 };
 const char *powerstate[] = { /* AMT/ACPI */
  "S0 (on)", "S1 (cpu stop)", "S2 (cpu off)", "S3 (sleep)",
@@ -142,13 +147,16 @@ bool  enforceScans = false; // enforce SSH/RDP scan even if no AMT success
 int main(int argc,char **argv,char **envp) {
   int c;
 
-  while ((c = getopt(argc, argv, "IBUDRSCLTE:M:5gndeqvjsrp:t:w:m:c:")) != -1)
+  while ((c = getopt(argc, argv, "HXFIBUDRSCLTE:M:5gndeqvjsrp:t:w:m:c:")) != -1)
   switch (c) {
     case 'I': cmd = CMD_INFO;                break;
     case 'U': cmd = CMD_POWERUP;             break;
     case 'D': cmd = CMD_POWERDOWN;           break;
     case 'C': cmd = CMD_POWERCYCLE;          break;
     case 'R': cmd = CMD_POWERRESET;          break;
+    case 'X': cmd = CMD_PXEBOOT;             break;
+    case 'H': cmd = CMD_HDDBOOT;             break;
+    case 'F': cmd = CMD_BOOTCONFIG;          break;
     case 'S': cmd = CMD_SHUTDOWN; useWsmanShift=5; break;
     case 'B': cmd = CMD_REBOOT; useWsmanShift=5; break;
     case 'T': cmd = CMD_TERMINAL;            break;
@@ -170,6 +178,10 @@ int main(int argc,char **argv,char **envp) {
     case 'd': useWsmanShift = 5;             break;
     case 'w': waitDelay = atof(optarg);      break;
     case '5': amtv5 = true;                  break;
+  }
+
+  if (cmd==CMD_PXEBOOT || cmd==CMD_HDDBOOT || cmd==CMD_BOOTCONFIG) {
+    useWsmanShift = 9;
   }
 
   strcpy(portnames[SCANRESULT_NONE_OPEN],"none"); /* no open ports found */
@@ -243,6 +255,10 @@ int main(int argc,char **argv,char **envp) {
       exit(1);
     }
   }
+
+  printf("cmd : %i\n", cmd);
+  printf("useWsmanShift : %i\n", useWsmanShift);
+  printf("cfgcmd : %i\n", cfgcmd);
 
   get_amt_pw();
 

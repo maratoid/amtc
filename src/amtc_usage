@@ -10,6 +10,9 @@
   -D(own)     powerdown
   -C(ycle)    powercycle
   -R(eset)    reset
+  -X          pxe boot (AMT 9.0+)
+  -H          hdd boot (AMT 9.0+)
+  -F          Set correct boot config profile after hdd boot or pxe boot is set (AMT 9.0+)
   -S(hutdown) using AMT graceful shutdown (AMT 9.0+)
   -(re)B(oot) using AMT graceful reset    (AMT 9.0+)
   -T(erminal) start SOL terminal session (single host)
